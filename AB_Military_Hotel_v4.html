@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AB Military Hotel - Store Management v3.0</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1419; color: #fff; overflow-x: hidden; }
+        .sidebar { width: 200px; background: #1a2332; height: 100vh; position: fixed; left: 0; overflow-y: auto; padding: 20px 0; border-right: 2px solid #2a3f5f; z-index: 100; }
+        .sidebar h3 { color: #00d4ff; padding: 0 15px 20px; font-size: 16px; }
+        .sidebar-item { padding: 12px 15px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.3s; color: #aaa; margin: 5px 0; }
+        .sidebar-item:hover { background: rgba(0, 212, 255, 0.1); border-left-color: #00d4ff; color: #fff; }
+        .sidebar-item.active { background: rgba(0, 212, 255, 0.2); border-left-color: #00d4ff; color: #00d4ff; font-weight: 600; }
+        .main { margin-left: 200px; padding: 20px; }
+        .header { background: #1a2332; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #2a3f5f; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #00d4ff; font-size: 24px; }
+        .logout-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .page { display: none; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: #1a2332; padding: 20px; border-radius: 8px; border: 2px solid #2a3f5f; }
+        .stat-card h3 { color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #00d4ff; }
+        .card { background: #1a2332; padding: 20px; border-radius: 8px; border: 2px solid #2a3f5f; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #aaa; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { border-color: #00d4ff; box-shadow: 0 0 0 2px rgba(0,212,255,0.1); outline: none; }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #00d4ff; color: #0f1419; }
+        .btn-primary:hover { background: #00b8d4; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-secondary { background: #2a3f5f; color: #00d4ff; border: 1px solid #00d4ff; }
+        .btn-secondary:hover { background: #3a4f6f; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table th { background: #2a3f5f; padding: 12px; text-align: left; font-weight: 600; color: #00d4ff; border-bottom: 2px solid #3a4f6f; }
+        .table td { padding: 12px; border-bottom: 1px solid #2a3f5f; }
+        .table tr:hover { background: #252f3f; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1a2332; border-radius: 8px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; border: 2px solid #2a3f5f; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; }
+        .modal-close:hover { color: #00d4ff; }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #00d4ff; border-bottom: 2px solid #2a3f5f; padding-bottom: 10px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #2a3f5f; }
+        .tab { padding: 10px 15px; cursor: pointer; color: #aaa; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .meat-item { background: #252f3f; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 4px solid #00d4ff; }
+        .meat-item h4 { color: #00d4ff; margin-bottom: 10px; }
+        .progress-bar { background: #2a3f5f; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { background: #00d4ff; height: 100%; transition: width 0.3s; }
+        .progress-text { font-size: 12px; color: #aaa; margin-top: 5px; }
+        .edit-btn { background: #00d4ff; color: #0f1419; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .edit-btn:hover { background: #00b8d4; }
+        .search-input { width: 100%; padding: 12px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 6px; margin-bottom: 15px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-good { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+        .status-warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .notification { position: fixed; top: 20px; right: 20px; background: #1a2332; border: 2px solid #2a3f5f; padding: 15px 20px; border-radius: 6px; z-index: 2000; max-width: 350px; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        .notification.success { border-color: #34d399; }
+        .notification.error { border-color: #ef4444; }
+        .notification.info { border-color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>🏨 AB Military</h3>
+        <div class="sidebar-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
+        <div class="sidebar-item" onclick="showPage('addBulk', this)">📦 Add Bulk Items</div>
+        <div class="sidebar-item" onclick="showPage('smartAdd', this)">⭐ Smart Select & Add</div>
+        <div class="sidebar-item" onclick="showPage('updateItems', this)">✏️ Update Items</div>
+        <div class="sidebar-item" onclick="showPage('viewItems', this)">👁️ View Items</div>
+        <div class="sidebar-item" onclick="showPage('dayReport', this)">📄 Day Report</div>
+        <div class="sidebar-item" onclick="showPage('monthReport', this)">📅 Month Report</div>
+        <div class="sidebar-item" onclick="showPage('adminPanel', this)">⚙️ Admin Panel</div>
+        <button class="btn btn-danger" onclick="logout()" style="width: 90%; margin: 20px auto; display: block;">🚪 Logout</button>
+    </div>
+
+    <div class="main">
+        <div id="loginPage" class="page active">
+            <div style="max-width: 400px; margin: 100px auto; text-align: center;">
+                <h1 style="color: #00d4ff; margin-bottom: 30px; font-size: 32px;">🏨 AB Military Hotel</h1>
+                <h2 style="margin-bottom: 30px; font-size: 18px; color: #aaa;">Store Management System v3.0</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="admin@abmilitary.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password">
+                    </div>
+                    <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
+                    <p style="margin-top: 15px; color: #aaa; font-size: 12px;">📝 Use your Firebase credentials to login</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="appContainer" style="display: none;">
+            <div class="header">
+                <h1>AB Military Hotel - Store Management</h1>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div><strong>Active Date:</strong> <input type="date" id="activeDateInput" style="width: 150px; padding: 8px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 4px;"></div>
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="page active">
+                <div class="section-title">📊 Dashboard</div>
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>Total Items</h3><div class="value" id="totalItems">0</div></div>
+                    <div class="stat-card"><h3>Items Today</h3><div class="value" id="itemsToday">0</div></div>
+                    <div class="stat-card"><h3>Used Today</h3><div class="value" id="usedToday">0</div></div>
+                    <div class="stat-card"><h3>Today's Expenses</h3><div class="value" id="expenses">₹0</div></div>
+                    <div class="stat-card"><h3>Today's Purchases</h3><div class="value" id="purchases">₹0</div></div>
+                    <div class="stat-card"><h3>Store Value</h3><div class="value" id="storeValue">₹0</div></div>
+                </div>
+                <div class="section-title">🥩 Meat Fridge Inventory</div>
+                <div id="meatContainer"></div>
+            </div>
+
+            <!-- ADD BULK ITEMS -->
+            <div id="addBulk" class="page">
+                <div class="section-title">📦 Add Items</div>
+                <div class="card">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label>Single Item</label>
+                            <button class="btn btn-primary" onclick="toggleSingleItem()" style="width: 100%;">➕ Add Single</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Bulk Items (1-50)</label>
+                            <button class="btn btn-secondary" onclick="toggleBulkItems()" style="width: 100%;">📦 Add Bulk</button>
+                        </div>
+                    </div>
+                    <div id="singleItemForm" style="display: none; border-top: 2px solid #2a3f5f; padding-top: 20px;">
+                        <div class="form-group">
+                            <label>Item Name</label>
+                            <input type="text" id="itemName" placeholder="Enter item name">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="itemCat">
+                                    <option>Groceries</option>
+                                    <option>Meat</option>
+                                    <option>Vegetables</option>
+                                    <option>Beverages</option>
+                                    <option>Other Bills</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <select id="itemUnit">
+                                    <option>kg</option>
+                                    <option>gm</option>
+                                    <option>ltr</option>
+                                    <option>ml</option>
+                                    <option>pcs</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addItem()" style="width: 100%;">✅ Add Item</button>
+                    </div>
+                    <div id="bulkItemsForm" style="display: none; border-top: 2px solid #2a3f5f; padding-top: 20px;">
+                        <div class="form-group">
+                            <label>How many items? (1-50)</label>
+                            <input type="number" id="bulkCount" min="1" max="50" value="5">
+                        </div>
+                        <button class="btn btn-primary" onclick="generateBulkForm()" style="width: 100%;">Generate Form</button>
+                        <div id="bulkFormContainer" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMART ADD -->
+            <div id="smartAdd" class="page">
+                <div class="section-title">⭐ Smart Select & Add</div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Search Item by Name</label>
+                        <input type="text" id="itemSearch" placeholder="Type item name..." oninput="searchItems()">
+                        <div id="searchResults"></div>
+                    </div>
+                    <div id="purchaseForm" style="display: none; border-top: 2px solid #2a3f5f; padding-top: 20px; margin-top: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="qty" step="0.01" placeholder="0.00" oninput="calcRate()">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Amount (₹)</label>
+                                <input type="number" id="amount" step="0.01" placeholder="0.00" oninput="calcRate()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Rate Per Unit (Calculated)</label>
+                            <input type="number" id="rate" readonly style="background: #0f1419; color: #aaa; cursor: not-allowed;">
+                        </div>
+                        <button class="btn btn-primary" onclick="addPurchase()" style="width: 100%;">💾 Save Purchase</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPDATE ITEMS -->
+            <div id="updateItems" class="page">
+                <div class="section-title">✏️ Update Items</div>
+                <div class="card">
+                    <input type="text" class="search-input" id="updateSearch" placeholder="🔍 Search items..." oninput="filterUpdateTable()">
+                    <div style="overflow-x: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr><th>Item</th><th>Category</th><th>Remaining</th><th>Use Qty</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="updateTable"></tbody>
+                        </table>
+                    </div>
+                    <div id="updateEmpty" class="empty-state">No items purchased today</div>
+                </div>
+            </div>
+
+            <!-- VIEW ITEMS -->
+            <div id="viewItems" class="page">
+                <div class="section-title">👁️ View Items</div>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('dayItems', this)">📅 Today Items</div>
+                    <div class="tab" onclick="switchTab('allItems', this)">📋 All Items</div>
+                    <div class="tab" onclick="switchTab('inventory', this)">📊 Inventory</div>
+                </div>
+                <div id="dayItems" class="tab-content active">
+                    <div class="card">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>Item</th><th>Category</th><th>Qty Purchase</th><th>Rate</th><th>Total</th><th>Used</th><th>Remaining</th><th>Status</th></tr>
+                                </thead>
+                                <tbody id="dayItemsTable"></tbody>
+                            </table>
+                        </div>
+                        <div id="dayEmpty" class="empty-state">No items today</div>
+                    </div>
+                </div>
+                <div id="allItems" class="tab-content">
+                    <div class="card">
+                        <input type="text" class="search-input" placeholder="🔍 Search items..." oninput="filterAllItems(this)">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>ID</th><th>Name</th><th>Category</th><th>Unit</th><th>Created</th></tr>
+                                </thead>
+                                <tbody id="allItemsTable"></tbody>
+                            </table>
+                        </div>
+                        <div id="allItemsEmpty" class="empty-state">No items</div>
+                    </div>
+                </div>
+                <div id="inventory" class="tab-content">
+                    <div class="card">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>Item</th><th>Available</th><th>%</th><th>Status</th></tr>
+                                </thead>
+                                <tbody id="inventoryTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAY REPORT -->
+            <div id="dayReport" class="page">
+                <div class="section-title">📄 Day Report</div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Select Date</label>
+                        <input type="date" id="reportDate">
+                    </div>
+                    <button class="btn btn-primary" onclick="generateDayReport()" style="width: 100%;">📊 Generate</button>
+                    <div id="reportContent" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- MONTH REPORT -->
+            <div id="monthReport" class="page">
+                <div class="section-title">📅 Month Report</div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Select Month</label>
+                        <input type="month" id="monthSelect">
+                    </div>
+                    <button class="btn btn-primary" onclick="generateMonthReport()" style="width: 100%;">📊 Generate</button>
+                    <div id="monthContent" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL -->
+            <div id="adminPanel" class="page">
+                <div class="section-title">⚙️ Admin Panel</div>
+
+                <div class="card">
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">📋 Low Stock Alerts</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Threshold (%)</label>
+                            <select id="alertThreshold">
+                                <option value="10">Critical (10%)</option>
+                                <option value="25" selected>Low (25%)</option>
+                                <option value="50">Medium (50%)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Frequency</label>
+                            <select id="alertFrequency">
+                                <option>Daily</option>
+                                <option>Weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveAlertSettings()" style="width: 100%;">💾 Save</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">🔓 Unlock Day</h3>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="unlockDate">
+                    </div>
+                    <button class="btn btn-primary" onclick="unlockDay()" style="width: 100%; margin-bottom: 10px;">🔓 Unlock</button>
+                    <button class="btn btn-secondary" onclick="lockDay()" style="width: 100%;">🔒 Lock</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">↪️ Carry Forward</h3>
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" id="carryFromDate">
+                    </div>
+                    <button class="btn btn-primary" onclick="carryForwardStock()" style="width: 100%;">↪️ Carry Forward</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">💾 Backup</h3>
+                    <button class="btn btn-primary" onclick="exportData()" style="margin-right: 10px;">📥 Export</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click();">📤 Import</button>
+                    <input type="file" id="importFile" style="display: none;" onchange="importData()" accept=".json">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+            <h3 style="color: #00d4ff; margin-bottom: 20px;">✏️ Edit Item</h3>
+            <div class="form-group">
+                <label>Item Name</label>
+                <input type="text" id="editItemName" readonly style="background: #0f1419; color: #aaa;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Purchased</label>
+                    <input type="number" id="editPurchased" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Rate</label>
+                    <input type="number" id="editRate" readonly style="background: #0f1419; color: #aaa;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Used Qty</label>
+                <input type="number" id="editUsed" step="0.01" min="0">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditItem()">💾 Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5mjcc6_w4kIIlNK-X1gn738TSjeG1ErY",
+            authDomain: "ab-military-hotel-store.firebaseapp.com",
+            databaseURL: "https://ab-military-hotel-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ab-military-hotel-store",
+            storageBucket: "ab-military-hotel-store.firebasestorage.app",
+            messagingSenderId: "906605215814",
+            appId: "1:906605215814:web:0cafc0c61d80286c884a47"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentUser = null;
+        let allItems = [];
+        let selectedItem = null;
+        let activeDate = new Date().toISOString().split('T')[0];
+        let dayData = {};
+        let editingItemId = null;
+        let autoRefresh = null;
+        let realTimeListeners = [];
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('activeDateInput').value = activeDate;
+                document.getElementById('reportDate').value = activeDate;
+                document.getElementById('unlockDate').value = activeDate;
+                document.getElementById('carryFromDate').value = activeDate;
+                loadAllData();
+                startAutoRefresh();
+                setupRealtimeListeners();
+            }
+        });
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showNotification('Enter email & password', 'error');
+            auth.signInWithEmailAndPassword(email, pass).catch(e => showNotification(e.message, 'error'));
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                document.getElementById('loginPage').style.display = 'block';
+                document.getElementById('appContainer').style.display = 'none';
+                clearRealtimeListeners();
+            });
+        }
+
+        function setupRealtimeListeners() {
+            clearRealtimeListeners();
+            const purchasesRef = db.ref(`dailyRecords/${activeDate}/purchases`);
+            purchasesRef.on('value', snap => {
+                dayData = snap.val() || {};
+                updateDashboard();
+                updateUpdateTable();
+                updateDayItemsTable();
+                updateInventoryTable();
+                updateMeatFridge();
+            });
+            realTimeListeners.push(purchasesRef);
+        }
+
+        function clearRealtimeListeners() {
+            realTimeListeners.forEach(ref => ref.off('value'));
+            realTimeListeners = [];
+        }
+
+        function startAutoRefresh() {
+            if (autoRefresh) clearInterval(autoRefresh);
+            autoRefresh = setInterval(() => loadAllData(), 10000);
+        }
+
+        function loadAllData() {
+            loadStoreItems();
+            loadDayData();
+        }
+
+        function loadStoreItems() {
+            db.ref('storeItems').once('value', snap => {
+                allItems = snap.val() ? Object.values(snap.val()) : [];
+                updateAllItemsTable();
+            });
+        }
+
+        function loadDayData() {
+            db.ref(`dailyRecords/${activeDate}/purchases`).once('value', snap => {
+                dayData = snap.val() || {};
+                updateDashboard();
+                updateUpdateTable();
+                updateDayItemsTable();
+                updateInventoryTable();
+                updateMeatFridge();
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function updateMeatFridge() {
+            let meatItems = Object.values(dayData).filter(p => p.category === 'Meat');
+            let html = '';
+            if (meatItems.length === 0) {
+                html = '<div class="empty-state">No meat items</div>';
+            } else {
+                meatItems.forEach(item => {
+                    const percentage = (item.totalAvailable > 0) ? (item.remaining / item.totalAvailable * 100) : 0;
+                    html += `<div class="meat-item"><h4>${item.itemName}</h4><p>Purchased: ${item.purchasedQty} ${item.unit} | Remaining: ${item.remaining} ${item.unit}</p><div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%"></div></div><div class="progress-text">${percentage.toFixed(0)}% remaining</div></div>`;
+                });
+            }
+            document.getElementById('meatContainer').innerHTML = html;
+        }
+
+        function showPage(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        function switchTab(id, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            if (!name) return showNotification('Enter item name', 'error');
+            if (allItems.some(i => i.name.toLowerCase() === name.toLowerCase())) return showNotification('Item exists', 'error');
+            const id = Math.max(...allItems.map(i => i.id || 0), 0) + 1;
+            db.ref(`storeItems/${id}`).set({id, name, category: document.getElementById('itemCat').value, unit: document.getElementById('itemUnit').value, createdDate: new Date().toISOString().split('T')[0]}).then(() => {
+                showNotification('✅ Item added', 'success');
+                document.getElementById('itemName').value = '';
+                document.getElementById('singleItemForm').style.display = 'none';
+                loadStoreItems();
+            }).catch(e => showNotification('Error: ' + e.message, 'error'));
+        }
+
+        function searchItems() {
+            const q = document.getElementById('itemSearch').value.toLowerCase();
+            const res = document.getElementById('searchResults');
+            if (!q) { res.innerHTML = ''; return; }
+            const filtered = allItems.filter(i => i.name.toLowerCase().includes(q));
+            res.innerHTML = filtered.map(i => `<div style="padding:10px;background:#2a3f5f;margin:5px 0;cursor:pointer;border-radius:4px" onclick="selectItem('${JSON.stringify(i).replace(/"/g, '&quot;')}')">${i.name} (${i.unit})</div>`).join('');
+        }
+
+        function selectItem(json) {
+            selectedItem = JSON.parse(json.replace(/&quot;/g, '"'));
+            document.getElementById('itemSearch').value = selectedItem.name;
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('purchaseForm').style.display = 'block';
+        }
+
+        function calcRate() {
+            const q = parseFloat(document.getElementById('qty').value) || 0;
+            const a = parseFloat(document.getElementById('amount').value) || 0;
+            if (q > 0) document.getElementById('rate').value = safeToFixed(a / q, 4);
+        }
+
+        function addPurchase() {
+            if (!selectedItem) return showNotification('Select item', 'error');
+            const q = parseFloat(document.getElementById('qty').value);
+            const a = parseFloat(document.getElementById('amount').value);
+            if (!q || !a) return showNotification('Enter qty & amount', 'error');
+            db.ref(`dailyRecords/${activeDate}/purchases/${selectedItem.id}`).set({itemId: selectedItem.id, itemName: selectedItem.name, category: selectedItem.category, unit: selectedItem.unit, purchasedQty: q, totalAmount: a, ratePerUnit: a/q, totalAvailable: q, used: 0, remaining: q, expense: 0, timestamp: new Date().toISOString()}).then(() => {
+                showNotification('✅ Purchase saved', 'success');
+                setTimeout(() => {
+                    document.getElementById('qty').value = '';
+                    document.getElementById('amount').value = '';
+                    document.getElementById('rate').value = '';
+                    document.getElementById('itemSearch').value = '';
+                    document.getElementById('purchaseForm').style.display = 'none';
+                    selectedItem = null;
+                }, 500);
+                loadDayData();
+            }).catch(e => showNotification('Error: ' + e.message, 'error'));
+        }
+
+        function filterUpdateTable() {
+            const q = document.getElementById('updateSearch').value.toLowerCase();
+            document.querySelectorAll('#updateTable tr').forEach(row => {
+                const name = row.cells[0]?.textContent.toLowerCase() || '';
+                row.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+
+        function filterAllItems(el) {
+            const q = el.value.toLowerCase();
+            document.querySelectorAll('#allItemsTable tr').forEach(row => {
+                const name = row.cells[1]?.textContent.toLowerCase() || '';
+                row.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+
+        function openEditModal(itemId) {
+            editingItemId = itemId;
+            const item = dayData[itemId];
+            if (!item) return showNotification('Item not found', 'error');
+            document.getElementById('editItemName').value = item.itemName;
+            document.getElementById('editPurchased').value = item.purchasedQty;
+            document.getElementById('editRate').value = safeToFixed(safeNumber(item.ratePerUnit)(4);
+            document.getElementById('editUsed').value = item.used;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingItemId = null;
+        }
+
+        function saveEditItem() {
+            const purchased = parseFloat(document.getElementById('editPurchased').value);
+            const used = parseFloat(document.getElementById('editUsed').value);
+            if (isNaN(purchased) || isNaN(used)) return showNotification('Invalid input', 'error');
+            if (used > purchased) return showNotification('Used > purchased', 'error');
+            const remaining = purchased - used;
+            const rate = dayData[editingItemId].ratePerUnit;
+            db.ref(`dailyRecords/${activeDate}/purchases/${editingItemId}`).update({purchasedQty: purchased, used: used, remaining: remaining, totalAvailable: purchased, expense: used * rate}).then(() => {
+                closeEditModal();
+                showNotification('✅ Updated', 'success');
+                loadDayData();
+            }).catch(e => showNotification('Error: ' + e.message, 'error'));
+        }
+
+        function getStatusBadge(percentage) {
+            if (percentage >= 75) return '<span class="status-badge status-good">✓ Good</span>';
+            if (percentage >= 25) return '<span class="status-badge status-warning">⚠ Low</span>';
+            return '<span class="status-badge status-critical">🔴 Critical</span>';
+        }
+
+        function updateDashboard() {
+            const items = Object.values(dayData);
+            const totalExpense = items.reduce((sum, i) => sum + (i.expense || 0), 0);
+            const totalPurchase = items.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+            const storeValue = items.reduce((sum, i) => sum + ((i.remaining || 0) * (i.ratePerUnit || 0)), 0);
+            document.getElementById('totalItems').textContent = allItems.length;
+            document.getElementById('itemsToday').textContent = items.length;
+            document.getElementById('usedToday').textContent = items.filter(i => i.used > 0).length;
+            document.getElementById('expenses').textContent = '₹' + totalExpense.toFixed(2);
+            document.getElementById('purchases').textContent = '₹' + totalPurchase.toFixed(2);
+            document.getElementById('storeValue').textContent = '₹' + storeValue.toFixed(2);
+        }
+
+        function updateUpdateTable() {
+            const tbody = document.getElementById('updateTable');
+            tbody.innerHTML = '';
+            if (Object.keys(dayData).length === 0) {
+                document.getElementById('updateEmpty').style.display = 'block';
+                return;
+            }
+            document.getElementById('updateEmpty').style.display = 'none';
+            Object.entries(dayData).forEach(([id, item]) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `<td>${item.itemName}</td><td>${item.category}</td><td>${item.remaining} ${item.unit}</td><td><input type="number" value="${item.used}" step="0.01" style="width:100%;padding:5px;background:#0f1419;color:#fff;border:1px solid #2a3f5f;border-radius:4px;" data-id="${id}"></td><td><button class="edit-btn" onclick="openEditModal('${id}')">Edit</button></td>`;
+            });
+        }
+
+        function updateDayItemsTable() {
+            const tbody = document.getElementById('dayItemsTable');
+            tbody.innerHTML = '';
+            if (Object.keys(dayData).length === 0) {
+                document.getElementById('dayEmpty').style.display = 'block';
+                return;
+            }
+            document.getElementById('dayEmpty').style.display = 'none';
+            Object.entries(dayData).forEach(([id, item]) => {
+                const percentage = (item.totalAvailable > 0) ? (item.remaining / item.totalAvailable * 100) : 0;
+                const row = tbody.insertRow();
+                row.innerHTML = `<td>${item.itemName}</td><td>${item.category}</td><td>${item.purchasedQty} ${item.unit}</td><td>₹${safeToFixed(safeNumber(item.ratePerUnit)(2)}</td><td>₹${item.totalAmount.toFixed(2)}</td><td>${item.used} ${item.unit}</td><td>${item.remaining} ${item.unit}</td><td>${getStatusBadge(percentage)}</td>`;
+            });
+        }
+
+        function updateAllItemsTable() {
+            const tbody = document.getElementById('allItemsTable');
+            tbody.innerHTML = '';
+            if (allItems.length === 0) {
+                document.getElementById('allItemsEmpty').style.display = 'block';
+                return;
+            }
+            document.getElementById('allItemsEmpty').style.display = 'none';
+            allItems.forEach(item => {
+                const row = tbody.insertRow();
+                row.innerHTML = `<td>${item.id}</td><td>${item.name}</td><td>${item.category}</td><td>${item.unit}</td><td>${item.createdDate}</td>`;
+            });
+        }
+
+        function updateInventoryTable() {
+            const tbody = document.getElementById('inventoryTable');
+            tbody.innerHTML = '';
+            allItems.forEach(item => {
+                const totalAvailable = Object.values(dayData).filter(p => p.itemId === item.id).reduce((sum, p) => sum + (p.remaining || 0), 0);
+                const totalPurchased = Object.values(dayData).filter(p => p.itemId === item.id).reduce((sum, p) => sum + (p.totalAvailable || 0), 0);
+                const percentage = (totalPurchased > 0) ? (totalAvailable / totalPurchased * 100) : 100;
+                const row = tbody.insertRow();
+                row.innerHTML = `<td>${item.name}</td><td>${totalAvailable} ${item.unit}</td><td>${percentage.toFixed(0)}%</td><td>${getStatusBadge(percentage)}</td>`;
+            });
+        }
+
+        function generateDayReport() {
+            const date = document.getElementById('reportDate').value;
+            if (!date) return showNotification('Select date', 'error');
+            db.ref(`dailyRecords/${date}/purchases`).once('value', snap => {
+                const purchases = Object.values(snap.val() || {});
+                if (!purchases.length) {
+                    document.getElementById('reportContent').innerHTML = '<p style="text-align:center;color:#aaa;">No data</p>';
+                    return;
+                }
+                let html = `<h3 style="color:#00d4ff;">Report: ${date}</h3><table class="table"><thead><tr><th>Item</th><th>Qty</th><th>Used</th><th>Remaining</th><th>Rate</th><th>Total</th><th>Expense</th></tr></thead><tbody>`;
+                let totalAmt = 0, totalExp = 0;
+                purchases.forEach(p => {
+                    totalAmt += p.totalAmount;
+                    totalExp += p.expense;
+                    html += `<tr><td>${p.itemName}</td><td>${p.purchasedQty}</td><td>${p.used}</td><td>${p.remaining}</td><td>₹${p.ratePerUnit.toFixed(2)}</td><td>₹${p.totalAmount.toFixed(2)}</td><td>₹${p.expense.toFixed(2)}</td></tr>`;
+                });
+                html += `<tr style="font-weight:bold;background:#2a3f5f;"><td colspan="5">Total</td><td>₹${totalAmt.toFixed(2)}</td><td>₹${totalExp.toFixed(2)}</td></tr></tbody></table>`;
+                document.getElementById('reportContent').innerHTML = html;
+            });
+        }
+
+        function generateMonthReport() {
+            const month = document.getElementById('monthSelect').value;
+            if (!month) return showNotification('Select month', 'error');
+            db.ref('dailyRecords').once('value', snap => {
+                const allRecords = snap.val() || {};
+                const monthRecords = Object.entries(allRecords).filter(([date]) => date.startsWith(month));
+                if (monthRecords.length === 0) {
+                    document.getElementById('monthContent').innerHTML = '<p style="text-align:center;color:#aaa;">No data</p>';
+                    return;
+                }
+                let totalPurchase = 0, totalExpense = 0;
+                let html = `<h3 style="color:#00d4ff;">Month: ${month}</h3><table class="table"><thead><tr><th>Date</th><th>Items</th><th>Purchase</th><th>Expense</th><th>Value</th></tr></thead><tbody>`;
+                monthRecords.forEach(([date, dayRec]) => {
+                    const purchases = Object.values(dayRec.purchases || {});
+                    const dayPurchase = purchases.reduce((sum, p) => sum + p.totalAmount, 0);
+                    const dayExpense = purchases.reduce((sum, p) => sum + p.expense, 0);
+                    const dayValue = purchases.reduce((sum, p) => sum + (p.remaining * p.ratePerUnit), 0);
+                    totalPurchase += dayPurchase;
+                    totalExpense += dayExpense;
+                    html += `<tr><td>${date}</td><td>${purchases.length}</td><td>₹${dayPurchase.toFixed(2)}</td><td>₹${dayExpense.toFixed(2)}</td><td>₹${dayValue.toFixed(2)}</td></tr>`;
+                });
+                html += `<tr style="font-weight:bold;background:#2a3f5f;"><td>Total</td><td>-</td><td>₹${totalPurchase.toFixed(2)}</td><td>₹${totalExpense.toFixed(2)}</td><td>-</td></tr></tbody></table>`;
+                document.getElementById('monthContent').innerHTML = html;
+            });
+        }
+
+        function generateBulkForm() {
+            const count = parseInt(document.getElementById('bulkCount').value) || 5;
+            if (count < 1 || count > 50) return showNotification('Enter 1-50', 'error');
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += `<div style="background: #252f3f; padding: 15px; margin: 10px 0; border-radius: 6px;"><h4 style="color: #00d4ff; margin-bottom: 10px;">Item ${i}</h4><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><input type="text" placeholder="Item name" id="bulkName${i}" style="padding: 8px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 4px;"><select id="bulkCat${i}" style="padding: 8px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 4px;"><option>Groceries</option><option>Meat</option><option>Vegetables</option><option>Beverages</option><option>Other Bills</option></select></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;"><select id="bulkUnit${i}" style="padding: 8px; background: #0f1419; color: #fff; border: 1px solid #2a3f5f; border-radius: 4px;"><option>kg</option><option>gm</option><option>ltr</option><option>ml</option><option>pcs</option></select></div></div>`;
+            }
+            html += `<button class="btn btn-primary" onclick="saveBulkItems(${count})" style="width: 100%; margin-top: 15px;">✅ Add All</button>`;
+            document.getElementById('bulkFormContainer').innerHTML = html;
+        }
+
+        function saveBulkItems(count) {
+            let added = 0, duplicates = 0;
+            for (let i = 1; i <= count; i++) {
+                const name = document.getElementById(`bulkName${i}`).value.trim();
+                if (!name) continue;
+                if (allItems.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+                    duplicates++;
+                    continue;
+                }
+                const id = Math.max(...allItems.map(it => it.id || 0), 0) + added + 1;
+                db.ref(`storeItems/${id}`).set({id, name, category: document.getElementById(`bulkCat${i}`).value, unit: document.getElementById(`bulkUnit${i}`).value, createdDate: new Date().toISOString().split('T')[0]});
+                added++;
+            }
+            let msg = `✅ Added ${added}`;
+            if (duplicates > 0) msg += ` (${duplicates} skipped)`;
+            showNotification(msg, 'success');
+            document.getElementById('bulkFormContainer').innerHTML = '';
+            document.getElementById('bulkCount').value = 5;
+            document.getElementById('bulkItemsForm').style.display = 'none';
+            setTimeout(() => loadStoreItems(), 500);
+        }
+
+        function saveAlertSettings() {
+            const threshold = document.getElementById('alertThreshold').value;
+            const frequency = document.getElementById('alertFrequency').value;
+            db.ref('settings/alerts').set({threshold: parseInt(threshold), frequency: frequency, lastUpdated: new Date().toISOString()}).then(() => {
+                showNotification('✅ Settings saved', 'success');
+            }).catch(e => showNotification('Error', 'error'));
+        }
+
+        function exportData() {
+            db.ref().once('value', snap => {
+                const data = JSON.stringify(snap.val(), null, 2);
+                const blob = new Blob([data], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `AB_Military_${Date.now()}.json`;
+                a.click();
+                showNotification('✅ Exported', 'success');
+            });
+        }
+
+        function importData() {
+            const file = document.getElementById('importFile').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.entries(data).forEach(([k, v]) => db.ref(k).set(v));
+                    showNotification('✅ Imported', 'success');
+                    setTimeout(() => loadAllData(), 1000);
+                } catch(err) {
+                    showNotification('Error: Invalid JSON', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function unlockDay() {
+            const date = document.getElementById('unlockDate').value;
+            if (!date) return showNotification('Select date', 'error');
+            db.ref(`lockedDays/${date}`).set(false).then(() => showNotification('✅ Unlocked', 'success')).catch(e => showNotification('Error', 'error'));
+        }
+
+        function lockDay() {
+            const date = document.getElementById('unlockDate').value;
+            if (!date) return showNotification('Select date', 'error');
+            db.ref(`lockedDays/${date}`).set(true).then(() => showNotification('✅ Locked', 'success')).catch(e => showNotification('Error', 'error'));
+        }
+
+        function carryForwardStock() {
+            const fromDate = document.getElementById('carryFromDate').value;
+            if (!fromDate) return showNotification('Select date', 'error');
+            const nextDate = new Date(fromDate);
+            nextDate.setDate(nextDate.getDate() + 1);
+            const toDate = nextDate.toISOString().split('T')[0];
+            db.ref(`dailyRecords/${fromDate}/purchases`).once('value', snap => {
+                const purchases = snap.val() || {};
+                const carryForward = {};
+                let count = 0;
+                Object.entries(purchases).forEach(([id, item]) => {
+                    if (item.remaining > 0) {
+                        carryForward[id] = {itemId: item.itemId, itemName: item.itemName, category: item.category, unit: item.unit, purchasedQty: item.remaining, totalAmount: item.remaining * safeNumber(item.ratePerUnit), ratePerUnit: safeNumber(item.ratePerUnit), totalAvailable: item.remaining, used: 0, remaining: item.remaining, expense: 0, carryForwardFrom: fromDate, timestamp: new Date().toISOString()};
+                        count++;
+                    }
+                });
+                if (count === 0) return showNotification('No stock to carry forward', 'info');
+                db.ref(`dailyRecords/${toDate}/purchases`).once('value', snap => {
+                    const existing = snap.val() || {};
+                    const merged = {...existing, ...carryForward};
+                    db.ref(`dailyRecords/${toDate}/purchases`).set(merged).then(() => {
+                        showNotification(`✅ Carried forward ${count} items`, 'success');
+                        activeDate = toDate;
+                        document.getElementById('activeDateInput').value = toDate;
+                        loadDayData();
+                        setupRealtimeListeners();
+                    });
+                });
+            });
+        }
+
+        function toggleSingleItem() {
+            const form = document.getElementById('singleItemForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            document.getElementById('bulkItemsForm').style.display = 'none';
+        }
+
+        function toggleBulkItems() {
+            const form = document.getElementById('bulkItemsForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            document.getElementById('singleItemForm').style.display = 'none';
+        }
+
+        document.getElementById('activeDateInput').addEventListener('change', () => {
+            activeDate = document.getElementById('activeDateInput').value;
+            document.getElementById('reportDate').value = activeDate;
+            document.getElementById('unlockDate').value = activeDate;
+            document.getElementById('carryFromDate').value = activeDate;
+            loadDayData();
+            setupRealtimeListeners();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (autoRefresh) clearInterval(autoRefresh);
+            clearRealtimeListeners();
+        });
+    </script>
+</body>
+</html>
