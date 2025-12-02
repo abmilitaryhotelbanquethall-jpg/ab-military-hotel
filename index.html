@@ -3,478 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AB Military Hotel - Store Management v4.0 Enhanced</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>AB Military Hotel - Store Management</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Login Page -->
     <div id="loginPage" class="login-container">
-        <div class="login-box">
-            <h1>🏨 AB Military Hotel</h1>
-            <p class="subtitle">Store Management System v4.0</p>
+        <div class="login-card">
+            <!-- Firebase Rules Warning -->
+            <div class="firebase-rules-warning" style="background: #FEE; border: 2px solid #F00; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                <h3 style="color: #C00; margin-top: 0;">⚠️ IMPORTANT: Fix Firebase Permissions</h3>
+                <p style="margin-bottom: 10px;">If you see "permission_denied" errors, update Firebase Database Rules:</p>
+                <ol style="margin: 10px 0; padding-left: 20px; font-size: 13px;">
+                    <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color: #00F;">Firebase Console</a></li>
+                    <li>Select <strong>AB Military Hotel Store</strong></li>
+                    <li>Click <strong>Realtime Database</strong> → <strong>Rules</strong> tab</li>
+                    <li>Replace rules with:
+                        <pre style="background: #000; color: #0F0; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin: 10px 0;">{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}</pre>
+                    </li>
+                    <li>Click <strong>Publish</strong></li>
+                    <li>Reload this app</li>
+                </ol>
+            </div>
+            <h1>AB Military Hotel</h1>
+            <h2>Store Management System</h2>
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="admin@abmilitary.com" required>
+                    <label class="form-label" for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                    <label class="form-label" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
                 </div>
-                <div id="loginError" class="error-message" style="display: none;"></div>
                 <button type="submit" class="btn btn--primary btn--full-width">Login</button>
             </form>
-            <p class="login-hint">Use your Firebase credentials to login</p>
+            <div id="loginError" class="error-message" style="display: none;"></div>
         </div>
     </div>
 
     <!-- Main Application -->
     <div id="mainApp" style="display: none;">
-        <!-- Sidebar Navigation -->
-        <div class="sidebar">
+        <!-- Vertical Sidebar -->
+        <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>🏨 AB Military</h2>
+                <h2>AB Military</h2>
             </div>
             <nav class="sidebar-nav">
-                <button class="sidebar-btn" data-page="dashboard">📊 Dashboard</button>
-                <button class="sidebar-btn" data-page="addBulkItems">📦 Add Items</button>
-                <button class="sidebar-btn" data-page="smartSelect">⭐ Smart Select</button>
-                <button class="sidebar-btn" data-page="updateItems">✏️ Update Items</button>
-                <button class="sidebar-btn" data-page="viewItems">👁️ View Items</button>
-                <button class="sidebar-btn" data-page="dayReport">📄 Day Report</button>
-                <button class="sidebar-btn" data-page="monthReport">📅 Month Report</button>
-                <button class="sidebar-btn" data-page="purchaseReport">📊 Purchases</button>
-                <button class="sidebar-btn" data-page="adminPanel">⚙️ Admin Panel</button>
+                <button class="sidebar-btn active" data-page="dashboard">
+                    <span class="sidebar-icon">🏠</span>
+                    <span>Dashboard</span>
+                </button>
+                <button class="sidebar-btn" data-page="addBulkItems">
+                    <span class="sidebar-icon">📦</span>
+                    <span>Add Bulk Items</span>
+                </button>
+                <button class="sidebar-btn" data-page="smartSelect">
+                    <span class="sidebar-icon">✨</span>
+                    <span>Smart Select &amp; Add</span>
+                </button>
+                <button class="sidebar-btn" data-page="updateItems">
+                    <span class="sidebar-icon">✏️</span>
+                    <span>Update Items</span>
+                </button>
+                <button class="sidebar-btn" data-page="viewItems">
+                    <span class="sidebar-icon">👁️</span>
+                    <span>View Items</span>
+                </button>
+                <button class="sidebar-btn" data-page="dayReport">
+                    <span class="sidebar-icon">📊</span>
+                    <span>Day Report</span>
+                </button>
+                <button class="sidebar-btn" data-page="monthReport">
+                    <span class="sidebar-icon">📅</span>
+                    <span>Month Report</span>
+                </button>
+                <button class="sidebar-btn" data-page="purchaseReport">
+                    <span class="sidebar-icon">🛒</span>
+                    <span>Purchase Report</span>
+                </button>
+
+                <button class="sidebar-btn" data-page="adminPanel">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span>Admin Panel</span>
+                </button>
             </nav>
-            <button id="sidebarLogoutBtn" class="btn btn--danger btn--full-width" style="margin-top: auto;">🚪 Logout</button>
-        </div>
+            <div class="sidebar-footer">
+                <button id="sidebarLogoutBtn" class="sidebar-btn logout-btn">
+                    <span class="sidebar-icon">🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>AB Military Hotel - Store Management</h1>
+                <div class="header-actions">
+                    <span id="activeDateDisplay" class="active-date-badge">Active Date: -</span>
+                    <span id="userEmail" class="user-email"></span>
+                    <button id="logoutBtn" class="btn btn--secondary btn--sm">Logout</button>
+                </div>
+            </div>
+        </header>
+
+
 
         <!-- Main Content -->
-        <div class="app-main">
-            <!-- Header -->
-            <header class="app-header">
-                <div class="header-content">
-                    <h1>AB Military Hotel - Store Management</h1>
-                    <div class="header-controls">
-                        <div class="date-selector-group">
-                            <label>Active Date:</label>
-                            <input type="date" id="activeDateInput" class="form-control">
-                            <button id="setActiveDateBtn" class="btn btn--primary btn--sm">Set Date</button>
-                            <button id="setTodayBtn" class="btn btn--secondary btn--sm">Today</button>
-                        </div>
-                        <div id="activeDateDisplay" class="active-date-display">Active Date: --</div>
-                        <div id="userEmail" class="user-info"></div>
-                        <button id="logoutBtn" class="btn btn--danger">Logout</button>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Toast Notification -->
-            <div id="toast" class="toast"></div>
-
+        <main class="app-main">
             <!-- Dashboard Page -->
             <div id="dashboardPage" class="page active">
-                <div class="page-header">
-                    <h2>📊 Dashboard</h2>
+                <h2>Dashboard</h2>
+                
+                <div class="date-selector-card">
+                    <h3>Active Date Management</h3>
+                    <div class="date-selector-group">
+                        <input type="date" id="activeDateInput" class="form-control">
+                        <button id="setActiveDateBtn" class="btn btn--primary">Set Active Date</button>
+                        <button id="setTodayBtn" class="btn btn--secondary">Today</button>
+                    </div>
                 </div>
 
-                <!-- Metrics Grid -->
-                <div class="metrics-grid">
-                    <div class="metric-card metric-card--primary">
+                <!-- Comprehensive Metrics Grid -->
+                <div class="comprehensive-metrics-grid">
+                    <div class="metric-card-v2 metric-card--primary">
                         <div class="metric-icon">📦</div>
                         <div class="metric-content">
                             <div class="metric-label">Total Items in Store</div>
-                            <div class="metric-value" id="totalItemsCount">0</div>
+                            <div class="metric-value" id="metric-total-store-items">0</div>
                             <div class="metric-sublabel">All registered items</div>
                         </div>
                     </div>
-                    <div class="metric-card metric-card--info">
+                    
+                    <div class="metric-card-v2 metric-card--info">
                         <div class="metric-icon">📅</div>
                         <div class="metric-content">
                             <div class="metric-label">Items Today</div>
-                            <div class="metric-value" id="itemsTodayCount">0</div>
-                            <div class="metric-sublabel">Added today</div>
+                            <div class="metric-value" id="metric-day-items">0</div>
+                            <div class="metric-sublabel">Purchased for this day</div>
                         </div>
                     </div>
-                    <div class="metric-card metric-card--warning">
-                        <div class="metric-icon">🔥</div>
+                    
+                    <div class="metric-card-v2 metric-card--warning">
+                        <div class="metric-icon">📤</div>
                         <div class="metric-content">
                             <div class="metric-label">Items Used Today</div>
-                            <div class="metric-value" id="itemsUsedCount">0</div>
+                            <div class="metric-value" id="metric-used-items">0</div>
                             <div class="metric-sublabel">Consumed items</div>
                         </div>
                     </div>
-                    <div class="metric-card metric-card--danger">
+                    
+                    <div class="metric-card-v2 metric-card--danger">
                         <div class="metric-icon">💸</div>
                         <div class="metric-content">
                             <div class="metric-label">Today's Expenses</div>
-                            <div class="metric-value" id="todayExpenses">₹0</div>
+                            <div class="metric-value" id="metric-expenses">₹0</div>
                             <div class="metric-sublabel">Total usage cost</div>
                         </div>
                     </div>
-                    <div class="metric-card metric-card--success">
+                    
+                    <div class="metric-card-v2 metric-card--success">
                         <div class="metric-icon">🛒</div>
                         <div class="metric-content">
                             <div class="metric-label">Today's Purchases</div>
-                            <div class="metric-value" id="todayPurchases">₹0</div>
+                            <div class="metric-value" id="metric-purchases">₹0</div>
                             <div class="metric-sublabel">Total bought today</div>
                         </div>
                     </div>
-                    <div class="metric-card metric-card--purple">
+                    
+                    <div class="metric-card-v2 metric-card--purple">
                         <div class="metric-icon">💰</div>
                         <div class="metric-content">
                             <div class="metric-label">Total Store Value</div>
-                            <div class="metric-value" id="storeValue">₹0</div>
+                            <div class="metric-value" id="metric-total-bill">₹0</div>
                             <div class="metric-sublabel">Current inventory worth</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Meat Fridge Inventory (Real-time) -->
-                <div class="section">
-                    <h3>🥩 Meat Fridge Inventory</h3>
-                    <div class="meat-grid" id="meatFridgeGrid">
-                        <!-- Populated by JavaScript -->
+                <!-- Meat Fridge Inventory Section -->
+                <div class="dashboard-meat-section">
+                    <h2>🥩 Meat Fridge Inventory</h2>
+                    <div class="meat-grid">
+                        <div class="meat-card">
+                            <h3>Chicken</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="chicken-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="chicken-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="chicken-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="meat-card">
+                            <h3>Natu Chicken</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="natu-chicken-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="natu-chicken-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="natu-chicken-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="meat-card">
+                            <h3>Mutton</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="mutton-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="mutton-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="mutton-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="meat-card">
+                            <h3>Fish</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="fish-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="fish-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="fish-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="meat-card">
+                            <h3>Apollo Fish</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="apollo-fish-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="apollo-fish-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="apollo-fish-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="meat-card">
+                            <h3>Prawns</h3>
+                            <div class="meat-details">
+                                <div class="fridge-qty">
+                                    <span>Fridge:</span>
+                                    <strong id="prawns-fridge">0 kg</strong>
+                                </div>
+                                <div class="fresh-qty">
+                                    <span>Fresh Today:</span>
+                                    <strong id="prawns-fresh">0 kg</strong>
+                                </div>
+                                <div class="total-qty">
+                                    <span>Total Available:</span>
+                                    <strong id="prawns-total">0 kg</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Stock Status Alerts -->
-                <div class="section">
-                    <h3>⚠️ Stock Status Alerts</h3>
+                <!-- Low Stock Alerts Section -->
+                <div class="low-stock-section">
+                    <h2>⚠️ Low Stock Alerts</h2>
                     <div class="alert-summary">
-                        <div class="alert-box critical">
-                            <div class="alert-count" id="criticalCount">0</div>
-                            <div class="alert-label">Critical (0-24%)</div>
+                        <div class="alert-card critical">
+                            <span class="count" id="critical-count">0</span>
+                            <span class="label">Critical (0-24%)</span>
                         </div>
-                        <div class="alert-box low">
-                            <div class="alert-count" id="lowCount">0</div>
-                            <div class="alert-label">Low (25-49%)</div>
+                        <div class="alert-card low">
+                            <span class="count" id="low-count">0</span>
+                            <span class="label">Low (25-49%)</span>
                         </div>
-                        <div class="alert-box medium">
-                            <div class="alert-count" id="mediumCount">0</div>
-                            <div class="alert-label">Medium (50-74%)</div>
+                        <div class="alert-card medium">
+                            <span class="count" id="medium-count">0</span>
+                            <span class="label">Good (50%+)</span>
                         </div>
-                        <div class="alert-box good">
-                            <div class="alert-count" id="goodCount">0</div>
-                            <div class="alert-label">Good (75%+)</div>
+                        <div class="alert-card full">
+                            <span class="count" id="full-count">0</span>
+                            <span class="label">Total Items</span>
                         </div>
                     </div>
+                    <div class="low-stock-items">
+                        <h3>Items Requiring Immediate Attention</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Category</th>
+                                        <th>Stock Level</th>
+                                        <th>Remaining</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="low-stock-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity-card">
+                    <h3>Recent Activity</h3>
+                    <div id="recentActivityList" class="activity-list"></div>
                 </div>
             </div>
 
-            <!-- Add Items Page -->
+            <!-- Add Bulk Items Page -->
             <div id="addBulkItemsPage" class="page">
-                <div class="page-header">
-                    <h2>📦 Add Items</h2>
+                <h2>Add Bulk Items</h2>
+                
+                <!-- Bulk Add Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>Bulk Add Items</h3>
+                        <div class="flex items-center gap-16" style="margin-bottom: 16px;">
+                            <div class="form-group" style="margin: 0; flex: 1;">
+                                <label class="form-label" for="bulkCount">How many items to add?</label>
+                                <select id="bulkCount" class="form-control">
+                                    <option value="10">10 items</option>
+                                    <option value="20">20 items</option>
+                                    <option value="50">50 items</option>
+                                </select>
+                            </div>
+                            <button id="createBulkFormBtn" class="btn btn--primary" style="margin-top: 24px;">Create Bulk Entry Form</button>
+                        </div>
+                        <div id="bulkFormContainer"></div>
+                        <div id="bulkFormActions" style="display: none; margin-top: 16px; gap: 12px;" class="flex">
+                            <button id="saveBulkItemsBtn" class="btn btn--primary">Save All Items</button>
+                            <button id="clearBulkFormBtn" class="btn btn--secondary">Clear All</button>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Bulk Add Form -->
-                <div class="section">
-                    <h3>Bulk Add Items</h3>
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Item Name</label>
-                            <input type="text" id="bulkItemName" class="form-control" placeholder="Enter item name">
-                        </div>
-                        <div class="form-row">
+                
+                <!-- Single Item Add -->
+                <div class="card">
+                    <div class="card__body">
+                        <form id="addBulkItemForm">
                             <div class="form-group">
-                                <label>Category</label>
-                                <select id="bulkItemCategory" class="form-control">
-                                    <option>Groceries</option>
-                                    <option>Meat</option>
-                                    <option>Inventory</option>
-                                    <option>Beverages</option>
-                                    <option>Other Bills</option>
+                                <label class="form-label" for="itemName">Item Name</label>
+                                <input type="text" id="itemName" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="itemCategory">Category</label>
+                                <select id="itemCategory" class="form-control" required>
+                                    <option value="">Select Category</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Unit</label>
-                                <select id="bulkItemUnit" class="form-control">
-                                    <option>kg</option>
-                                    <option>gm</option>
-                                    <option>ltr</option>
-                                    <option>ml</option>
-                                    <option>pcs</option>
-                                    <option>dozen</option>
+                                <label class="form-label" for="itemUnit">Unit</label>
+                                <select id="itemUnit" class="form-control" required>
+                                    <option value="">Select Unit</option>
+                                    <option value="kg">kg</option>
+                                    <option value="g">g</option>
+                                    <option value="ltr">ltr</option>
+                                    <option value="ml">ml</option>
+                                    <option value="pcs">pcs</option>
+                                    <option value="pkts">pkts</option>
+                                    <option value="dozen">dozen</option>
                                 </select>
                             </div>
-                        </div>
-                        <button onclick="addBulkItem()" class="btn btn--primary">✅ Add Item</button>
+                            <button type="submit" class="btn btn--primary">Add Item</button>
+                        </form>
                     </div>
                 </div>
 
-                <!-- Single Item Entry Form (NEW) -->
-                <div class="section">
-                    <h3>Single Item Entry</h3>
-                    <div class="card">
-                        <p style="color: #666; margin-bottom: 15px;">Add a single item with quick purchase entry</p>
-                        <div class="form-group">
-                            <label>Item Name</label>
-                            <input type="text" id="singleItemName" class="form-control" placeholder="Item name">
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card__body">
+                        <h3>Store Items</h3>
+                        <div class="table-container">
+                            <table id="storeItemsTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Item Name</th>
+                                        <th>Category</th>
+                                        <th>Unit</th>
+                                        <th>Created Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="storeItemsTableBody"></tbody>
+                            </table>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select id="singleItemCategory" class="form-control">
-                                    <option>Groceries</option>
-                                    <option>Meat</option>
-                                    <option>Inventory</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Unit</label>
-                                <select id="singleItemUnit" class="form-control">
-                                    <option>kg</option>
-                                    <option>gm</option>
-                                    <option>ltr</option>
-                                    <option>pcs</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Quantity</label>
-                                <input type="number" id="singleItemQty" class="form-control" placeholder="0" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label>Amount (₹)</label>
-                                <input type="number" id="singleItemAmount" class="form-control" placeholder="0" step="0.01">
-                            </div>
-                        </div>
-                        <button onclick="addSingleItemWithPurchase()" class="btn btn--primary">➕ Add & Purchase</button>
-                    </div>
-                </div>
-
-                <!-- Store Items Table -->
-                <div class="section">
-                    <h3>Store Items List</h3>
-                    <div class="card">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Item Name</th>
-                                    <th>Category</th>
-                                    <th>Unit</th>
-                                    <th>Created Date</th>
-                                    <th>Last Purchased</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="storeItemsTableBody">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- Smart Select & Add Page -->
             <div id="smartSelectPage" class="page">
-                <div class="page-header">
-                    <h2>⭐ Smart Select & Add</h2>
-                </div>
-
-                <div class="section">
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Search Item</label>
-                            <input type="text" id="itemSearch" class="form-control" placeholder="Type item name...">
-                            <div id="searchResults" class="search-results"></div>
-                        </div>
-
-                        <div id="purchaseForm" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--color-border);">
-                            <h3 id="selectedItemName"></h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Purchase Date</label>
-                                    <input type="date" id="purchaseDate" class="form-control">
+                <h2>Smart Select &amp; Add</h2>
+                <div class="card">
+                    <div class="card__body">
+                        <form id="smartSelectForm">
+                            <div class="form-group">
+                                <label class="form-label" for="itemSearchInput">🔍 Search Item by Name</label>
+                                <input type="text" id="itemSearchInput" class="form-control" placeholder="Type item name to filter..." oninput="filterItemsBySearch()">
+                                <small style="color: var(--color-text-secondary); font-size: 12px;">Start typing to filter items in the dropdown below</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="selectItemDropdown">Select Item</label>
+                                <select id="selectItemDropdown" class="form-control" required>
+                                    <option value="">Choose an item</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="purchasedQty">Purchased Quantity</label>
+                                <input type="number" id="purchasedQty" class="form-control" step="0.01" required oninput="calculatePerUnitRate()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="purchasedUnit">Unit</label>
+                                <select id="purchasedUnit" class="form-control" required onchange="calculatePerUnitRate()">
+                                    <option value="kg">kg (Kilogram)</option>
+                                    <option value="gm">gm (Grams)</option>
+                                    <option value="ltr">ltr (Liters)</option>
+                                    <option value="ml">ml (Milliliters)</option>
+                                    <option value="pcs">pcs (Pieces)</option>
+                                </select>
+                                <small id="unitDisplay" style="color: var(--color-text-secondary);">Base unit: <span id="baseUnitDisplay">-</span></small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="totalAmountPaid">💰 Total Amount Paid (₹)</label>
+                                <input type="number" id="totalAmountPaid" class="form-control" step="0.01" required oninput="calculatePerUnitRate()">
+                                <small style="color: var(--color-text-secondary); font-size: 12px;">Enter the total bill amount you paid for this purchase</small>
+                            </div>
+                            <div class="form-group" style="background: var(--color-bg-1); padding: 15px; border-radius: 8px; border: 2px solid var(--color-primary);">
+                                <label class="form-label">📊 Calculated Rates (Auto-calculated)</label>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--color-primary);">
+                                    <div><span id="calculatedRateDisplay">₹0</span> <span style="font-size: 16px;">per</span> <span id="rateUnitDisplay">-</span></div>
+                                    <div style="font-size: 16px; margin-top: 8px; color: var(--color-text-secondary);">
+                                        <span id="baseRateDisplay">₹0</span> <span style="font-size: 14px;">per</span> <span id="baseUnitRateDisplay">-</span>
+                                    </div>
                                 </div>
+                                <small style="color: var(--color-text-secondary); font-size: 12px;">System calculates: Total Amount ÷ Quantity</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="purchaseDate">Purchase Date</label>
+                                <input type="date" id="purchaseDate" class="form-control" required>
+                            </div>
+                            <div id="meatTypeSelector" style="display: none;">
                                 <div class="form-group">
-                                    <label>Quantity</label>
-                                    <input type="number" id="purchaseQty" class="form-control" placeholder="0" step="0.01">
+                                    <label class="form-label" for="meatType">Meat Type</label>
+                                    <select id="meatType" class="form-control">
+                                        <option value="fridge">Add to Fridge (will carry over)</option>
+                                        <option value="fresh">Fresh Purchase (daily, won't carry over)</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Amount (₹)</label>
-                                    <input type="number" id="purchaseAmount" class="form-control" placeholder="0" step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label>Rate Per Unit</label>
-                                    <input type="number" id="purchaseRate" class="form-control" placeholder="0" step="0.01" readonly>
-                                </div>
-                            </div>
-                            <button onclick="savePurchase()" class="btn btn--primary">💾 Save Purchase</button>
-                        </div>
+                            <button type="submit" class="btn btn--primary btn--full-width" style="margin-top: 20px; font-size: 16px;">💾 Save Purchase</button>
+                        </form>
                     </div>
                 </div>
             </div>
 
             <!-- Update Items Page -->
             <div id="updateItemsPage" class="page">
-                <div class="page-header">
-                    <h2>✏️ Update Items</h2>
+                <h2>Update Items</h2>
+                <div class="card">
+                    <div class="card__body">
+                        <div class="search-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="searchDate">Search by Date</label>
+                                <input type="date" id="searchDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="searchItemName">Search by Item Name</label>
+                                <input type="text" id="searchItemName" class="form-control" placeholder="Enter item name">
+                            </div>
+                            <button id="searchUpdateBtn" class="btn btn--primary">Search</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="section">
-                    <div class="card">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Category</th>
-                                    <th>Stock in Store</th>
-                                    <th>Purchased Today</th>
-                                    <th>Total Available</th>
-                                    <th>Used Qty</th>
-                                    <th>Remaining</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="updateItemsTableBody">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
+                <div id="updateItemsResults" style="display: none;">
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card__body">
+                            <h3>Update Item Details</h3>
+                            <form id="updateItemForm">
+                                <input type="hidden" id="updateItemId">
+                                <input type="hidden" id="updateItemDate">
+                                <div class="form-group">
+                                    <label class="form-label" for="updateName">Item Name</label>
+                                    <input type="text" id="updateName" class="form-control" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="updateCategory">Category</label>
+                                    <input type="text" id="updateCategory" class="form-control" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="updateUnit">Unit</label>
+                                    <input type="text" id="updateUnit" class="form-control" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="updatePurchasedQty">Purchased Quantity</label>
+                                    <input type="number" id="updatePurchasedQty" class="form-control" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="updatePurchaseRate">Purchase Rate</label>
+                                    <input type="number" id="updatePurchaseRate" class="form-control" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="updateUsedQty">Used Quantity</label>
+                                    <input type="number" id="updateUsedQty" class="form-control" step="0.01">
+                                </div>
+                                <div class="calculated-fields">
+                                    <div class="calc-field">
+                                        <label>Remaining Quantity:</label>
+                                        <span id="calcRemaining">0</span>
+                                    </div>
+                                    <div class="calc-field">
+                                        <label>Expense:</label>
+                                        <span id="calcExpense">₹0</span>
+                                    </div>
+                                </div>
+                                <div class="update-item-actions">
+                                    <button type="submit" class="btn btn--primary">✅ Update Item</button>
+                                    <button type="button" id="cancelUpdateBtn" class="btn btn--secondary">❌ Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- View Items Page -->
             <div id="viewItemsPage" class="page">
-                <div class="page-header">
-                    <h2>👁️ View Items</h2>
-                </div>
-
-                <!-- Tab Navigation -->
+                <h2>View Items</h2>
                 <div class="tabs">
-                    <button class="tab-btn active" data-tab="dayItemsTab">📅 Day Items</button>
-                    <button class="tab-btn" data-tab="totalItemsTab">📦 Total Items</button>
-                    <button class="tab-btn" data-tab="purchaseHistoryTab">📊 Purchase History</button>
-                    <button class="tab-btn" data-tab="stockTab">🏪 Total Stock</button>
-                    <button class="tab-btn" data-tab="storeItemsTab">🛒 Store Items</button>
+                    <button class="tab-btn active" data-tab="dayItems">Day Items</button>
+                    <button class="tab-btn" data-tab="totalItems">Total Items</button>
                 </div>
 
-                <!-- Day Items Tab -->
                 <div id="dayItemsTab" class="tab-content active">
-                    <div class="section">
-                        <h3>Day Items for <span id="dayItemsDate">--</span></h3>
-                        <div class="card">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Category</th>
-                                        <th>Stock in Store</th>
-                                        <th>Purchased</th>
-                                        <th>Total Available</th>
-                                        <th>Rate/Unit</th>
-                                        <th>Used</th>
-                                        <th>Remaining</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dayItemsTableBody">
-                                    <!-- Populated by JavaScript -->
-                                </tbody>
-                            </table>
+                    <div class="card">
+                        <div class="card__body">
+                            <div class="flex justify-between items-center" style="margin-bottom: 16px;">
+                                <h3>Items for Active Date</h3>
+                                <button id="exportDayItemsJson" class="btn btn--secondary btn--sm">Export JSON</button>
+                            </div>
+                            <!-- Sorting and Filtering Controls -->
+                            <div class="view-items-controls">
+                                <div class="sort-controls">
+                                    <label>Sort by:</label>
+                                    <select id="sort-by" class="form-control">
+                                        <option value="id">ID</option>
+                                        <option value="name">Name (A-Z)</option>
+                                        <option value="category">Category</option>
+                                        <option value="status">Stock Status</option>
+                                        <option value="remaining">Remaining Qty</option>
+                                        <option value="expense">Expense</option>
+                                    </select>
+                                    <button id="sort-order-btn" class="btn btn--sm btn--secondary">⬆️ Ascending</button>
+                                </div>
+                                <div class="filter-controls">
+                                    <label>Filter by status:</label>
+                                    <select id="filter-status" class="form-control">
+                                        <option value="all">All Items</option>
+                                        <option value="critical">Critical Stock</option>
+                                        <option value="low">Low Stock</option>
+                                        <option value="medium">Medium Stock</option>
+                                        <option value="full">Full Stock</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Stock in Store</th>
+                                            <th>Purchased Today</th>
+                                            <th>Total Available</th>
+                                            <th>Purchase Rate</th>
+                                            <th>Used Qty</th>
+                                            <th>Expense</th>
+                                            <th>Remaining in Store</th>
+                                            <th>Actions</th>
+                                            <th>Delete</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dayItemsTableBody"></tbody>
+                                    <tfoot>
+                                        <tr class="total-row">
+                                            <td colspan="8"><strong>Total</strong></td>
+                                            <td id="dayItemsTotal"><strong>₹0</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Total Items Tab -->
                 <div id="totalItemsTab" class="tab-content">
-                    <div class="section">
-                        <h3>Total Items in Store</h3>
-                        <div class="view-controls">
-                            <input type="text" id="totalItemsSearch" class="form-control" placeholder="Search items..." style="margin-bottom: 15px;">
-                        </div>
-                        <div class="card">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Item</th>
-                                        <th>Category</th>
-                                        <th>Unit</th>
-                                        <th>Created Date</th>
-                                        <th>Last Purchased Date</th>
-                                        <th>Last Purchased Qty</th>
-                                        <th>Created Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="totalItemsTableBody">
-                                    <!-- Populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Purchase History Tab (NEW) -->
-                <div id="purchaseHistoryTab" class="tab-content">
-                    <div class="section">
-                        <h3>Items wise Purchase History</h3>
-                        <div class="card">
-                            <p style="color: #666; margin-bottom: 15px;">Monthly purchase patterns for all items</p>
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Item Name</th>
-                                        <th>Category</th>
-                                        <th>Purchase Date</th>
-                                        <th>Quantity</th>
-                                        <th>Unit</th>
-                                        <th>Price Per Unit</th>
-                                        <th>Total Amount</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="purchaseHistoryTableBody">
-                                    <!-- Populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Stock Tab (NEW) -->
-                <div id="stockTab" class="tab-content">
-                    <div class="section">
-                        <h3>Total Stock in Store</h3>
-                        <div class="card">
-                            <p style="color: #666; margin-bottom: 15px;">Real-time stock availability across all days</p>
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Item Name</th>
-                                        <th>Category</th>
-                                        <th>Stock in Store</th>
-                                        <th>Unit</th>
-                                        <th>Status %</th>
-                                        <th>Status Badge</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stockTableBody">
-                                    <!-- Populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Store Items Tab (NEW) -->
-                <div id="storeItemsTab" class="tab-content">
-                    <div class="section">
-                        <h3>Store Items</h3>
-                        <div class="card">
-                            <div id="storeItemsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                                <!-- Populated by JavaScript -->
+                    <div class="card">
+                        <div class="card__body">
+                            <div class="flex justify-between items-center" style="margin-bottom: 16px;">
+                                <h3>All Store Items</h3>
+                                <button id="exportTotalItemsJson" class="btn btn--secondary btn--sm">Export JSON</button>
+                            </div>
+                            <div class="view-items-controls" style="grid-template-columns: 1fr;">
+                                <div class="sort-controls">
+                                    <label>Sort by:</label>
+                                    <select id="total-sort-by" class="form-control">
+                                        <option value="id">ID</option>
+                                        <option value="name">Name (A-Z)</option>
+                                        <option value="category">Category</option>
+                                        <option value="unit">Unit</option>
+                                        <option value="createdDate">Created Date</option>
+                                    </select>
+                                    <button id="total-sort-order-btn" class="btn btn--sm btn--secondary">⬆️ Ascending</button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Unit</th>
+                                            <th>Last Purchased Qty</th>
+                                            <th>Last Purchase Amount</th>
+                                            <th>Created Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="totalItemsTableBody"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -483,143 +679,396 @@
 
             <!-- Day Report Page -->
             <div id="dayReportPage" class="page">
-                <div class="page-header">
-                    <h2>📄 Day Report</h2>
+                <h2>Day Report</h2>
+                <div class="card">
+                    <div class="card__body">
+                        <div class="flex items-center gap-16" style="margin-bottom: 24px;">
+                            <div class="form-group" style="margin: 0; flex: 1;">
+                                <label class="form-label" for="dayReportDate">Select Date</label>
+                                <input type="date" id="dayReportDate" class="form-control">
+                            </div>
+                            <button id="searchDayReportBtn" class="btn btn--primary" style="margin-top: 24px;">Search</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="section">
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Select Date</label>
-                            <input type="date" id="dayReportDate" class="form-control">
-                            <button onclick="generateDayReport()" class="btn btn--primary" style="margin-top: 10px;">Generate Report</button>
+                <div id="dayReportResults" style="display: none;">
+                    <div class="metrics-grid" style="margin-top: 24px;">
+                        <div class="metric-card" style="background: var(--color-bg-1);">
+                            <h4>Total Items Purchased</h4>
+                            <p class="metric-value" id="dayReportTotalItems">0</p>
                         </div>
-                        <div id="dayReportContent" style="margin-top: 20px;"></div>
+                        <div class="metric-card" style="background: var(--color-bg-2);">
+                            <h4>Total Items Used</h4>
+                            <p class="metric-value" id="dayReportItemsUsed">0</p>
+                        </div>
+                        <div class="metric-card" style="background: var(--color-bg-3);">
+                            <h4>Total Expense</h4>
+                            <p class="metric-value" id="dayReportExpense">₹0</p>
+                        </div>
+                        <div class="metric-card" style="background: var(--color-bg-4);">
+                            <h4>Total Purchased Amount</h4>
+                            <p class="metric-value" id="dayReportPurchased">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card__body">
+                            <div class="flex justify-between items-center" style="margin-bottom: 16px;">
+                                <h3>Items Breakdown</h3>
+                                <div class="flex gap-8">
+                                    <button id="exportDayReportExcel" class="btn btn--secondary btn--sm">Export Excel</button>
+                                    <button id="exportDayReportCsv" class="btn btn--secondary btn--sm">Export CSV</button>
+                                    <button id="exportDayReportJson" class="btn btn--secondary btn--sm">Export JSON</button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Stock in Store</th>
+                                            <th>Purchased Today</th>
+                                            <th>Total Available</th>
+                                            <th>Purchase Rate</th>
+                                            <th>Used Qty</th>
+                                            <th>Expense</th>
+                                            <th>Remaining in Store</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dayReportTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Month Report Page -->
             <div id="monthReportPage" class="page">
-                <div class="page-header">
-                    <h2>📅 Month Report</h2>
+                <h2>Month Report</h2>
+                <div class="card">
+                    <div class="card__body">
+                        <div class="flex items-center gap-16" style="margin-bottom: 24px;">
+                            <div class="form-group" style="margin: 0; flex: 1;">
+                                <label class="form-label" for="monthReportMonth">Select Month</label>
+                                <input type="month" id="monthReportMonth" class="form-control">
+                            </div>
+                            <button id="searchMonthReportBtn" class="btn btn--primary" style="margin-top: 24px;">Search</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="section">
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Select Month</label>
-                            <input type="month" id="monthReportSelect" class="form-control">
-                            <button onclick="generateMonthReport()" class="btn btn--primary" style="margin-top: 10px;">Generate Report</button>
+                <div id="monthReportResults" style="display: none;">
+                    <div class="metrics-grid" style="margin-top: 24px;">
+                        <div class="metric-card" style="background: var(--color-bg-1);">
+                            <h4>Total Purchased Amount</h4>
+                            <p class="metric-value" id="monthTotalPurchased">₹0</p>
                         </div>
-                        <div id="monthReportContent" style="margin-top: 20px;"></div>
+                        <div class="metric-card" style="background: var(--color-bg-2);">
+                            <h4>Total Used Expense</h4>
+                            <p class="metric-value" id="monthTotalExpense">₹0</p>
+                        </div>
+                        <div class="metric-card" style="background: var(--color-bg-3);">
+                            <h4>Investment Bills</h4>
+                            <p class="metric-value" id="monthInvestmentBills">₹0</p>
+                        </div>
+                        <div class="metric-card" style="background: var(--color-bg-4);">
+                            <h4>Grand Total</h4>
+                            <p class="metric-value" id="monthGrandTotal">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card__body">
+                            <div class="flex justify-between items-center" style="margin-bottom: 16px;">
+                                <h3>Daily Breakdown</h3>
+                                <div class="flex gap-8">
+                                    <button id="exportMonthReportExcel" class="btn btn--secondary btn--sm">Export Excel</button>
+                                    <button id="exportMonthReportCsv" class="btn btn--secondary btn--sm">Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date (Click to View)</th>
+                                            <th>Items Purchased</th>
+                                            <th>Items Used</th>
+                                            <th>Daily Expense</th>
+                                            <th>Purchased Amount</th>
+                                            <th>Investment Bills</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="monthReportTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Purchase Report Page -->
             <div id="purchaseReportPage" class="page">
-                <div class="page-header">
-                    <h2>📊 All Purchases</h2>
+                <h2>Purchase Report</h2>
+                <div class="card">
+                    <div class="card__body">
+                        <div class="filter-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="purchaseFilterMonth">Filter by Month</label>
+                                <input type="month" id="purchaseFilterMonth" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="purchaseFilterCategory">Filter by Category</label>
+                                <select id="purchaseFilterCategory" class="form-control">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                            <button id="applyPurchaseFilterBtn" class="btn btn--primary" style="margin-top: 24px;">Apply Filter</button>
+                            <button id="clearPurchaseFilterBtn" class="btn btn--secondary" style="margin-top: 24px;">Clear</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="section">
-                    <div class="card">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Item Name</th>
-                                    <th>Category</th>
-                                    <th>Quantity</th>
-                                    <th>Unit</th>
-                                    <th>Rate/Unit</th>
-                                    <th>Total Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="purchaseReportTableBody">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--color-border);">
-                            <strong>Total Purchases: <span id="totalPurchasesAmount">₹0</span></strong>
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card__body">
+                        <div class="flex justify-between items-center" style="margin-bottom: 16px;">
+                            <h3>All Purchases</h3>
+                            <div class="flex gap-8">
+                                <button id="exportPurchaseExcel" class="btn btn--secondary btn--sm">Export Excel</button>
+                                <button id="exportPurchaseCsv" class="btn btn--secondary btn--sm">Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Purchase Date</th>
+                                        <th>Item Name</th>
+                                        <th>Category</th>
+                                        <th>Quantity</th>
+                                        <th>Unit</th>
+                                        <th>Purchase Rate</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchaseReportTableBody"></tbody>
+                                <tfoot>
+                                    <tr class="total-row">
+                                        <td colspan="6"><strong>Total</strong></td>
+                                        <td id="purchaseReportTotal"><strong>₹0</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
+
+
 
             <!-- Admin Panel Page -->
             <div id="adminPanelPage" class="page">
-                <div class="page-header">
-                    <h2>⚙️ Admin Panel</h2>
+                <h2>Admin Panel</h2>
+                
+                <!-- Category Management Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>🏷️ Category Management</h3>
+                        
+                        <!-- Add Category Form -->
+                        <div class="category-form" style="margin-bottom: 24px;">
+                            <h4 style="font-size: 16px; margin-bottom: 12px;">Add New Category</h4>
+                            <div class="flex items-center gap-16">
+                                <input type="text" id="new-category-name" class="form-control" placeholder="Category Name (e.g., Groceries)" style="flex: 1;">
+                                <input type="color" id="new-category-color" class="form-control" value="#3B82F6" style="width: 80px;">
+                                <button onclick="addCategory()" class="btn btn--primary">Add Category</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Subcategory Form -->
+                        <div class="subcategory-form" style="margin-bottom: 24px;">
+                            <h4 style="font-size: 16px; margin-bottom: 12px;">Add Subcategory</h4>
+                            <div class="flex items-center gap-16">
+                                <select id="parent-category" class="form-control" style="flex: 1;">
+                                    <option value="">Select Parent Category</option>
+                                </select>
+                                <input type="text" id="new-subcategory-name" class="form-control" placeholder="Subcategory Name (e.g., Chicken)" style="flex: 1;">
+                                <button onclick="addSubcategory()" class="btn btn--primary">Add Subcategory</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Existing Categories List -->
+                        <div class="categories-display">
+                            <h4 style="font-size: 16px; margin-bottom: 12px;">Existing Categories</h4>
+                            <div id="categories-list" class="categories-grid"></div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Day Lock Management (NEW) -->
-                <div class="section">
-                    <h3>🔒 Day Lock & Report Management</h3>
-                    <div class="card">
-                        <div class="form-group">
-                            <label>Lock/Unlock Date</label>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <input type="date" id="lockDate" class="form-control">
-                                <button onclick="toggleDayLock()" class="btn btn--primary">🔒 Toggle Lock</button>
+                
+                <!-- Day Lock Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>Day Lock &amp; Report Generation</h3>
+                        <div class="day-lock-info">
+                            <p><strong>Active Date:</strong> <span id="lockActiveDate">-</span></p>
+                            <div id="day-lock-container">
+                                <button id="lockDayBtn" class="btn btn--primary" style="margin-top: 16px;">🔒 Lock Day &amp; Generate Report</button>
                             </div>
-                            <div id="lockStatus" style="padding: 15px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
-                                Lock Status: <strong id="lockStatusText">Checking...</strong>
+                            <div class="warning-box" style="margin-top: 16px;">
+                                <p><strong>⚠️ This will:</strong></p>
+                                <ul>
+                                    <li>Lock all items for this date</li>
+                                    <li>Generate Excel report</li>
+                                    <li>Auto-download report file</li>
+                                    <li>Move active date to next day</li>
+                                </ul>
                             </div>
-                            <button onclick="generateAndLockDay()" class="btn btn--danger" style="width: 100%;">
-                                🔐 Lock This Day & Generate Report
-                            </button>
-                            <p style="color: #666; font-size: 12px; margin-top: 10px;">This will lock the date, generate report, and move to next day</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Device Tracking Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>Device Tracking</h3>
+                        <p><strong>Total Active Devices:</strong> <span id="activeDeviceCount">0</span></p>
+                        <div class="table-container" style="margin-top: 16px;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Device Info</th>
+                                        <th>Login Time</th>
+                                        <th>Last Active</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deviceTrackingTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Email Alert Settings -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>📧 Low Stock Email Alerts</h3>
+                        <div class="email-alert-settings">
+                            <div class="setting-row">
+                                <label>Enable Email Alerts:</label>
+                                <input type="checkbox" id="email-alerts-enabled">
+                                <span id="alert-status" class="status-badge">OFF</span>
+                            </div>
+                            <div class="setting-row">
+                                <label>Alert Email Address:</label>
+                                <input type="email" id="alert-email" class="form-control" value="admin@abmilitary.com">
+                            </div>
+                            <div class="setting-row">
+                                <label>Alert Threshold:</label>
+                                <select id="alert-threshold" class="form-control">
+                                    <option value="25">Critical (&lt;25%)</option>
+                                    <option value="50" selected>Low (&lt;50%)</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <label>Alert Frequency:</label>
+                                <select id="alert-frequency" class="form-control">
+                                    <option value="daily">Daily</option>
+                                    <option value="realtime">Real-time (immediate)</option>
+                                </select>
+                            </div>
+                            <button id="saveEmailSettingsBtn" class="btn btn--primary">Save Settings</button>
+                            <button id="sendTestAlertBtn" class="btn btn--secondary">📧 Send Test Alert</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delete Operations Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card__body">
+                        <h3>🗑️ Delete Operations</h3>
+                        <div class="delete-options">
+                            <div class="delete-card">
+                                <h4>Delete Items by Name</h4>
+                                <select id="delete-item-name" class="form-control" multiple size="5">
+                                    <!-- Populated from storeItems -->
+                                </select>
+                                <button id="deleteItemsByNameBtn" class="btn btn--danger">Delete Selected Items</button>
+                            </div>
+                            <div class="delete-card">
+                                <h4>Delete Items by Date</h4>
+                                <input type="date" id="delete-by-date" class="form-control">
+                                <button id="deleteItemsByDateBtn" class="btn btn--danger">Delete All Items for Date</button>
+                            </div>
+                            <div class="delete-card">
+                                <h4>Delete Items by Category</h4>
+                                <select id="delete-by-category" class="form-control">
+                                    <option value="">Select Category</option>
+                                </select>
+                                <button id="deleteItemsByCategoryBtn" class="btn btn--danger">Delete Category Items</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Database Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <label>Total Items:</label>
+                                <span id="adminTotalItems">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <label>Total Purchases:</label>
+                                <span id="adminTotalPurchases">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <label>Total Days Recorded:</label>
+                                <span id="adminTotalDays">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <label>Cloud Sync Status:</label>
+                                <span id="adminSyncStatus" class="status status--success">Connected</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Backup & Export -->
-                <div class="section">
-                    <h3>📥 Backup & Export</h3>
-                    <div class="card">
-                        <div class="form-row">
-                            <button onclick="exportData()" class="btn btn--primary">📥 Export All Data</button>
-                            <button onclick="document.getElementById('importFile').click()" class="btn btn--secondary">📤 Import Data</button>
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card__body">
+                        <h3>Admin Operations</h3>
+                        <div class="admin-actions">
+                            <button id="resetItemIdsBtn" class="btn btn--secondary">Reset Item IDs</button>
+                            <button id="exportAllDataBtn" class="btn btn--secondary">Export All Data</button>
+                            <button id="copyItemsToDateBtn" class="btn btn--secondary">Copy Total Items to Date</button>
+                            <button id="deleteItemsByDateBtn" class="btn btn--outline">Delete Items by Date</button>
                         </div>
-                        <input type="file" id="importFile" style="display: none;" accept=".json">
-                    </div>
-                </div>
-
-                <!-- Database Statistics -->
-                <div class="section">
-                    <h3>📊 Database Statistics</h3>
-                    <div class="card">
-                        <div class="metrics-grid">
-                            <div class="metric-card metric-card--primary">
-                                <div class="metric-icon">📦</div>
-                                <div class="metric-content">
-                                    <div class="metric-label">Total Items</div>
-                                    <div class="metric-value" id="adminTotalItems">0</div>
-                                </div>
-                            </div>
-                            <div class="metric-card metric-card--info">
-                                <div class="metric-icon">📅</div>
-                                <div class="metric-content">
-                                    <div class="metric-label">Total Records</div>
-                                    <div class="metric-value" id="adminTotalRecords">0</div>
-                                </div>
-                            </div>
-                            <div class="metric-card metric-card--warning">
-                                <div class="metric-icon">💾</div>
-                                <div class="metric-content">
-                                    <div class="metric-label">Total Purchases</div>
-                                    <div class="metric-value" id="adminTotalPurchases">0</div>
-                                </div>
-                            </div>
+                        <div style="margin-top: 24px;">
+                            <label class="form-label">Import JSON Data</label>
+                            <input type="file" id="importJsonFile" accept=".json" class="form-control">
+                            <button id="importJsonBtn" class="btn btn--primary" style="margin-top: 8px;">Import Data</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    
+    <!-- Application JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
